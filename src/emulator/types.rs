@@ -88,6 +88,17 @@ impl Instruction<BType> {
     pub fn rs2(&self) -> u8 {
         (self.instruction >> 20 & 0b11111) as u8
     }
+
+    pub fn imm(&self) -> u16 {
+        let p1 = (self.instruction >> 7 & 0b11111) as u16;
+        let b11 = (p1 & 1) << 11; // bit 11
+        let p1 = p1 >> 1; // bits 0-4
+        let p2 = (self.instruction >> 25) as u16; // bits 5-10, 12
+        let b12 = (p2 >> 6) << 12;
+        let p2 = p2 & 0b011111;
+
+        p1 | b11 | p2 | b12
+    }
 }
 
 impl Instruction<UType> {
@@ -104,7 +115,7 @@ impl Instruction<JType> {
 
 #[cfg(test)]
 mod test {
-    use crate::emulator::types::{IType, Instruction, RType, SType};
+    use crate::emulator::types::{BType, IType, Instruction, RType, SType};
 
     #[test]
     fn rtype_instructions() {
@@ -148,5 +159,22 @@ mod test {
         assert_eq!(sb.funct3(), 0);
         assert_eq!(sb.rs1(), 18);
         assert_eq!(sb.rs2(), 19);
+    }
+
+    #[test]
+    fn btype_instructions() {
+        // beq x5, x6, 16 <-- arb. offset, ignore
+        // RS1 = 00101
+        // RS2 = 00110
+        // IMM: 1 0000
+        //
+        //
+        let beq: Instruction<BType> = Instruction::new(0x02628063);
+
+        assert_eq!(beq.opcode(), 0b1100011);
+        assert_eq!(beq.funct3(), 0);
+        assert_eq!(beq.rs1(), 5);
+        assert_eq!(beq.rs2(), 6);
+        assert_eq!(beq.imm(), 1);
     }
 }
