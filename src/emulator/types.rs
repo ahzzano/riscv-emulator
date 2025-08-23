@@ -45,9 +45,24 @@ impl Instruction<RType> {
     }
 }
 
+impl Instruction<IType> {
+    pub fn rd(&self) -> u8 {
+        (self.instruction >> 7 & 0b11111) as u8
+    }
+    pub fn funct3(&self) -> u8 {
+        (self.instruction >> 12 & 0b111) as u8
+    }
+    pub fn rs1(&self) -> u8 {
+        (self.instruction >> 15 & 0b11111) as u8
+    }
+    pub fn imm(&self) -> u16 {
+        (self.instruction >> 20) as u16
+    }
+}
+
 #[cfg(test)]
 mod test {
-    use crate::emulator::types::{Instruction, RType};
+    use crate::emulator::types::{IType, Instruction, RType};
 
     #[test]
     fn rtype_instructions() {
@@ -63,5 +78,20 @@ mod test {
         assert_eq!(add.rs1(), 0b10011);
         assert_eq!(add.rs2(), 0b10100);
         assert_eq!(add.funct7(), 0x0)
+    }
+
+    #[test]
+    fn itype_instructions() {
+        // add s4, s5, 0x25
+        // 20, 21
+        // MC: 000000110101 10101 000 10100 0010011
+        // MC: 0000 0011 0101 1010 1000 1010 0001 0011
+        // 025A8A13
+        let addi: Instruction<IType> = Instruction::new(0x025a8a13);
+        assert_eq!(addi.opcode(), 0b0010011);
+        assert_eq!(addi.rd(), 0b10100);
+        assert_eq!(addi.funct3(), 0b000);
+        assert_eq!(addi.rs1(), 0b10101);
+        assert_eq!(addi.imm(), 0x25);
     }
 }
