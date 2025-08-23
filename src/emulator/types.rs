@@ -60,16 +60,33 @@ impl Instruction<IType> {
     }
 }
 
+impl Instruction<SType> {
+    pub fn funct3(&self) -> u8 {
+        (self.instruction >> 12 & 0b111) as u8
+    }
+    pub fn rs1(&self) -> u8 {
+        (self.instruction >> 15 & 0b11111) as u8
+    }
+    pub fn rs2(&self) -> u8 {
+        (self.instruction >> 20 & 0b11111) as u8
+    }
+    pub fn imm(&self) -> u16 {
+        let p1 = (self.instruction >> 7 & 0b11111) as u16;
+        let p2 = (self.instruction >> 25) as u16;
+        let offset_p2 = p2 << 5;
+        offset_p2 | p1
+    }
+}
+
 #[cfg(test)]
 mod test {
-    use crate::emulator::types::{IType, Instruction, RType};
+    use crate::emulator::types::{IType, Instruction, RType, SType};
 
     #[test]
     fn rtype_instructions() {
         // add s2, s3, s4 -- s2 = s3 + s4
         // in machine code
         // 00110011 10100 10011 000 10010 0110011
-        // 011001110100100110000100100110011
         let add: Instruction<RType> = Instruction::new(0x01498933);
 
         assert_eq!(add.opcode(), 0b0110011);
@@ -93,5 +110,19 @@ mod test {
         assert_eq!(addi.funct3(), 0b000);
         assert_eq!(addi.rs1(), 0b10101);
         assert_eq!(addi.imm(), 0x25);
+    }
+
+    #[test]
+    fn stype_instructions() {
+        // sw s3, 5(s2)
+        // 19, 18
+        // MC: 0000000 10011 10010 000 00101 0100011
+        // MC: 00000001 0011 1001 0000 0010 1010 0011
+        let sb: Instruction<SType> = Instruction::new(0x013902A3);
+        assert_eq!(sb.opcode(), 0b0100011);
+        assert_eq!(sb.imm(), 0x05);
+        assert_eq!(sb.funct3(), 0);
+        assert_eq!(sb.rs1(), 18);
+        assert_eq!(sb.rs2(), 19);
     }
 }
