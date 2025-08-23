@@ -1,4 +1,4 @@
-use std::marker::PhantomData;
+use std::{any::TypeId, marker::PhantomData};
 
 // Instruction Types
 pub struct RType;
@@ -75,6 +75,30 @@ impl Instruction<SType> {
         let p2 = (self.instruction >> 25) as u16;
         let offset_p2 = p2 << 5;
         offset_p2 | p1
+    }
+}
+
+impl Instruction<BType> {
+    pub fn funct3(&self) -> u8 {
+        (self.instruction >> 12 & 0b111) as u8
+    }
+    pub fn rs1(&self) -> u8 {
+        (self.instruction >> 15 & 0b11111) as u8
+    }
+    pub fn rs2(&self) -> u8 {
+        (self.instruction >> 20 & 0b11111) as u8
+    }
+}
+
+impl Instruction<UType> {
+    pub fn rd(&self) -> u8 {
+        (self.instruction >> 7 & 0b11111) as u8
+    }
+}
+
+impl Instruction<JType> {
+    pub fn rd(&self) -> u8 {
+        (self.instruction >> 7 & 0b11111) as u8
     }
 }
 
