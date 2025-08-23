@@ -105,6 +105,9 @@ impl Instruction<UType> {
     pub fn rd(&self) -> u8 {
         (self.instruction >> 7 & 0b11111) as u8
     }
+    pub fn imm(&self) -> u32 {
+        self.instruction >> 12
+    }
 }
 
 impl Instruction<JType> {
@@ -115,7 +118,7 @@ impl Instruction<JType> {
 
 #[cfg(test)]
 mod test {
-    use crate::emulator::types::{BType, IType, Instruction, RType, SType};
+    use crate::emulator::types::{BType, IType, Instruction, RType, SType, UType, test};
 
     #[test]
     fn rtype_instructions() {
@@ -176,5 +179,12 @@ mod test {
         assert_eq!(beq.rs1(), 5);
         assert_eq!(beq.rs2(), 6);
         assert_eq!(beq.imm(), 1);
+    }
+
+    #[test]
+    fn utype_instructions() {
+        let lui: Instruction<UType> = Instruction::new(0x12345037);
+
+        assert_eq!(lui.imm(), 0x12345)
     }
 }
