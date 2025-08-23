@@ -39,14 +39,13 @@ impl CPU {
         }
     }
 
-    pub fn write_memory_map_u32(&mut self, memmap: Vec<u32>, start: u32) {
+    pub fn write_memory_map_u32(&mut self, memmap: Vec<u32>, start: usize) {
         let mmap_size = memmap.len();
-        let a = start as usize;
-        let b = mmap_size + (start as usize);
 
-        for addr in (a..b).step_by(4) {
+        for addr in (0..mmap_size).map(|i| start + (i * 4)) {
             println!("map: {addr}");
-            self.memory.write_u32(addr as u32, memmap[addr - a]);
+            self.memory
+                .write_u32(addr as u32, memmap[(addr / 4) - start]);
         }
     }
 }
