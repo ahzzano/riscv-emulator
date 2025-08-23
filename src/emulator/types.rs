@@ -55,8 +55,8 @@ impl Instruction<IType> {
     pub fn rs1(&self) -> u8 {
         (self.instruction >> 15 & 0b11111) as u8
     }
-    pub fn imm(&self) -> u16 {
-        (self.instruction >> 20) as u16
+    pub fn imm(&self) -> i16 {
+        (self.instruction >> 20) as i16
     }
 }
 
@@ -70,9 +70,9 @@ impl Instruction<SType> {
     pub fn rs2(&self) -> u8 {
         (self.instruction >> 20 & 0b11111) as u8
     }
-    pub fn imm(&self) -> u16 {
-        let p1 = (self.instruction >> 7 & 0b11111) as u16;
-        let p2 = (self.instruction >> 25) as u16;
+    pub fn imm(&self) -> i16 {
+        let p1 = (self.instruction >> 7 & 0b11111) as i16;
+        let p2 = (self.instruction >> 25) as i16;
         let offset_p2 = p2 << 5;
         offset_p2 | p1
     }
@@ -89,11 +89,11 @@ impl Instruction<BType> {
         (self.instruction >> 20 & 0b11111) as u8
     }
 
-    pub fn imm(&self) -> u16 {
-        let p1 = (self.instruction >> 7 & 0b11111) as u16;
+    pub fn imm(&self) -> i16 {
+        let p1 = (self.instruction >> 7 & 0b11111) as i16;
         let b11 = (p1 & 1) << 11; // bit 11
         let p1 = p1 >> 1; // bits 0-4
-        let p2 = (self.instruction >> 25) as u16; // bits 5-10, 12
+        let p2 = (self.instruction >> 25) as i16; // bits 5-10, 12
         let b12 = (p2 >> 6) << 12;
         let p2 = p2 & 0b011111;
 
@@ -114,11 +114,22 @@ impl Instruction<JType> {
     pub fn rd(&self) -> u8 {
         (self.instruction >> 7 & 0b11111) as u8
     }
+
+    pub fn imm(&self) -> i32 {
+        let imm20 = ((self.instruction >> 31) & 0x1) << 20;
+        let imm10_1 = ((self.instruction >> 21) & 0x3FF) << 1;
+        let imm11 = ((self.instruction >> 20) & 0x1) << 11;
+        let imm19_12 = ((self.instruction >> 12) & 0xFF) << 12;
+
+        // Combine
+        let imm = (imm20 | imm19_12 | imm11 | imm10_1) as i32;
+        (imm << 11) >> 11
+    }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::emulator::types::{BType, IType, Instruction, RType, SType, UType, test};
+    use crate::emulator::types::{BType, IType, Instruction, JType, RType, SType, UType};
 
     #[test]
     fn rtype_instructions() {
@@ -171,7 +182,6 @@ mod test {
         // RS2 = 00110
         // IMM: 1 0000
         //
-        //
         let beq: Instruction<BType> = Instruction::new(0x02628063);
 
         assert_eq!(beq.opcode(), 0b1100011);
@@ -186,5 +196,14 @@ mod test {
         let lui: Instruction<UType> = Instruction::new(0x12345037);
 
         assert_eq!(lui.imm(), 0x12345)
+    }
+
+    #[test]
+    fn jtype_instructions() {
+        let jal_p: Instruction<JType> = Instruction::new(0x00C000EF);
+        assert_eq!(jal_p.imm(), 12);
+
+        let jal_n: Instruction<JType> = Instruction::new(0xFF9FF0EF);
+        assert_eq!(jal_n.imm(), -8);
     }
 }
