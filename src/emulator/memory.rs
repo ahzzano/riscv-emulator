@@ -28,5 +28,16 @@ impl Memory {
     pub fn write(&mut self, addr: u32, content: u8) {
         self.mem[addr as usize] = content;
     }
-}
 
+    pub fn write_u32(&mut self, addr: u32, content: u32) {
+        let a = (content >> 24) as u8;
+        let b = ((content >> 16) & 0xFF) as u8;
+        let c = (content >> 8) as u8;
+        let d = content as u8;
+
+        self.mem[addr as usize] = a;
+        self.mem[(addr as usize) + 1] = b;
+        self.mem[(addr as usize) + 2] = c;
+        self.mem[(addr as usize) + 3] = d;
+    }
+}

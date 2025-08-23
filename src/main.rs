@@ -11,6 +11,7 @@ fn main() {
     println!("{a_opcode:?}");
 
     let mut system = CPU::default();
-    system.write_memory_map(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 0);
+    // system.write_memory_map(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 0);
+    system.write_memory_map_u32(vec![0x12345678, 0x123], 0);
     println!("{system:?}");
 }
