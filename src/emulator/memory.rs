@@ -22,7 +22,7 @@ impl Memory {
         let b = self.mem[(addr + 1) as usize];
         let c = self.mem[(addr + 2) as usize];
         let d = self.mem[(addr + 3) as usize];
-        u32::from_le_bytes([a, b, c, d])
+        u32::from_le_bytes([d, c, b, a])
     }
 
     pub fn write(&mut self, addr: u32, content: u8) {
@@ -41,3 +41,4 @@ impl Memory {
         self.mem[(addr as usize) + 3] = d;
     }
 }
+

@@ -1,17 +1,36 @@
 use std::{any::TypeId, marker::PhantomData};
 
 // Instruction Types
-pub struct RType;
-pub struct IType;
-pub struct SType;
-pub struct BType;
-pub struct UType;
-pub struct JType;
+#[derive(Debug)]
+pub struct R;
+pub struct I;
+pub struct S;
+pub struct B;
+pub struct U;
+pub struct J;
+
+pub enum AnyInstruction {
+    R(Instruction<R>),
+    I(Instruction<I>),
+    S(Instruction<S>),
+    B(Instruction<B>),
+    U(Instruction<U>),
+    J(Instruction<J>),
+}
 
 #[derive(Debug)]
 pub struct Instruction<T> {
     instruction: u32,
     instruction_type: PhantomData<T>,
+}
+
+pub fn encode(code: u32) -> Option<AnyInstruction> {
+    let instr = Instruction::new(code);
+
+    match instr.opcode() {
+        0b0110011 => Some(AnyInstruction::R(instr)),
+        _ => None,
+    }
 }
 
 impl<T> Instruction<T> {
@@ -27,7 +46,7 @@ impl<T> Instruction<T> {
     }
 }
 
-impl Instruction<RType> {
+impl Instruction<R> {
     pub fn rd(&self) -> u8 {
         (self.instruction >> 7 & 0b11111) as u8
     }
@@ -45,7 +64,7 @@ impl Instruction<RType> {
     }
 }
 
-impl Instruction<IType> {
+impl Instruction<I> {
     pub fn rd(&self) -> u8 {
         (self.instruction >> 7 & 0b11111) as u8
     }
@@ -60,7 +79,7 @@ impl Instruction<IType> {
     }
 }
 
-impl Instruction<SType> {
+impl Instruction<S> {
     pub fn funct3(&self) -> u8 {
         (self.instruction >> 12 & 0b111) as u8
     }
@@ -78,7 +97,7 @@ impl Instruction<SType> {
     }
 }
 
-impl Instruction<BType> {
+impl Instruction<B> {
     pub fn funct3(&self) -> u8 {
         (self.instruction >> 12 & 0b111) as u8
     }
@@ -101,7 +120,7 @@ impl Instruction<BType> {
     }
 }
 
-impl Instruction<UType> {
+impl Instruction<U> {
     pub fn rd(&self) -> u8 {
         (self.instruction >> 7 & 0b11111) as u8
     }
@@ -110,7 +129,7 @@ impl Instruction<UType> {
     }
 }
 
-impl Instruction<JType> {
+impl Instruction<J> {
     pub fn rd(&self) -> u8 {
         (self.instruction >> 7 & 0b11111) as u8
     }
@@ -129,14 +148,14 @@ impl Instruction<JType> {
 
 #[cfg(test)]
 mod test {
-    use crate::emulator::types::{BType, IType, Instruction, JType, RType, SType, UType};
+    use crate::emulator::types::{B, I, Instruction, J, R, S, U};
 
     #[test]
     fn rtype_instructions() {
         // add s2, s3, s4 -- s2 = s3 + s4
         // in machine code
         // 00110011 10100 10011 000 10010 0110011
-        let add: Instruction<RType> = Instruction::new(0x01498933);
+        let add: Instruction<R> = Instruction::new(0x01498933);
 
         assert_eq!(add.opcode(), 0b0110011);
         assert_eq!(add.rd(), 0b10010);
@@ -153,7 +172,7 @@ mod test {
         // MC: 000000110101 10101 000 10100 0010011
         // MC: 0000 0011 0101 1010 1000 1010 0001 0011
         // 025A8A13
-        let addi: Instruction<IType> = Instruction::new(0x025a8a13);
+        let addi: Instruction<I> = Instruction::new(0x025a8a13);
         assert_eq!(addi.opcode(), 0b0010011);
         assert_eq!(addi.rd(), 0b10100);
         assert_eq!(addi.funct3(), 0b000);
@@ -167,7 +186,7 @@ mod test {
         // 19, 18
         // MC: 0000000 10011 10010 000 00101 0100011
         // MC: 00000001 0011 1001 0000 0010 1010 0011
-        let sb: Instruction<SType> = Instruction::new(0x013902A3);
+        let sb: Instruction<S> = Instruction::new(0x013902A3);
         assert_eq!(sb.opcode(), 0b0100011);
         assert_eq!(sb.imm(), 0x05);
         assert_eq!(sb.funct3(), 0);
@@ -182,7 +201,7 @@ mod test {
         // RS2 = 00110
         // IMM: 1 0000
         //
-        let beq: Instruction<BType> = Instruction::new(0x02628063);
+        let beq: Instruction<B> = Instruction::new(0x02628063);
 
         assert_eq!(beq.opcode(), 0b1100011);
         assert_eq!(beq.funct3(), 0);
@@ -193,17 +212,17 @@ mod test {
 
     #[test]
     fn utype_instructions() {
-        let lui: Instruction<UType> = Instruction::new(0x12345037);
+        let lui: Instruction<U> = Instruction::new(0x12345037);
 
         assert_eq!(lui.imm(), 0x12345)
     }
 
     #[test]
     fn jtype_instructions() {
-        let jal_p: Instruction<JType> = Instruction::new(0x00C000EF);
+        let jal_p: Instruction<J> = Instruction::new(0x00C000EF);
         assert_eq!(jal_p.imm(), 12);
 
-        let jal_n: Instruction<JType> = Instruction::new(0xFF9FF0EF);
+        let jal_n: Instruction<J> = Instruction::new(0xFF9FF0EF);
         assert_eq!(jal_n.imm(), -8);
     }
 }
