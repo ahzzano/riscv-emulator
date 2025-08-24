@@ -79,11 +79,15 @@ impl CPU {
         match instr {
             AnyInstruction::R(instr) => match instr.funct3() {
                 0x0 => {
-                    // ADD
+                    // ADD / SUB
                     let rd = instr.rd();
                     let rs1 = self.registers[instr.rs1() as usize];
                     let rs2 = self.registers[instr.rs2() as usize];
-                    self.registers[rd as usize] = rs1 + rs2;
+                    if instr.funct7() > 0 {
+                        self.registers[rd as usize] = rs1 - rs2;
+                    } else {
+                        self.registers[rd as usize] = rs1 + rs2;
+                    }
                 }
                 _ => {
                     todo!()
@@ -95,4 +99,3 @@ impl CPU {
         }
     }
 }
-
