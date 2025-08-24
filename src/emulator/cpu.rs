@@ -77,6 +77,17 @@ impl CPU {
 
     fn exec(&mut self, instr: AnyInstruction) {
         match instr {
+            AnyInstruction::Syscall => {
+                let call = self.registers[10];
+                match call {
+                    1 => {
+                        println!("Write Syscall");
+                    }
+                    _ => {
+                        todo!()
+                    }
+                }
+            }
             AnyInstruction::R(instr) => match instr.funct3() {
                 0x0 => {
                     // ADD / SUB
@@ -99,3 +110,4 @@ impl CPU {
         }
     }
 }
+

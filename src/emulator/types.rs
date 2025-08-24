@@ -16,6 +16,7 @@ pub enum AnyInstruction {
     B(Instruction<B>),
     U(Instruction<U>),
     J(Instruction<J>),
+    Syscall,
 }
 
 #[derive(Debug)]
@@ -32,6 +33,7 @@ pub fn encode(code: u32) -> Option<AnyInstruction> {
         0b0110011 => Some(AnyInstruction::R(Instruction::new(code))),
         0b0010011 => Some(AnyInstruction::I(Instruction::new(code))),
         0b0000011 => Some(AnyInstruction::S(Instruction::new(code))),
+        0b1110011 => Some(AnyInstruction::Syscall),
         _ => None,
     }
 }
