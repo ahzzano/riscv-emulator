@@ -1,4 +1,4 @@
-use std::{any::TypeId, marker::PhantomData};
+use std::marker::PhantomData;
 
 // Instruction Types
 #[derive(Debug)]
@@ -25,10 +25,13 @@ pub struct Instruction<T> {
 }
 
 pub fn encode(code: u32) -> Option<AnyInstruction> {
-    let instr = Instruction::new(code);
+    // let instr = Instruction::new(code);
+    let opcode = code & 0b1111111;
 
-    match instr.opcode() {
-        0b0110011 => Some(AnyInstruction::R(instr)),
+    match opcode {
+        0b0110011 => Some(AnyInstruction::R(Instruction::new(code))),
+        0b0010011 => Some(AnyInstruction::I(Instruction::new(code))),
+        0b0000011 => Some(AnyInstruction::S(Instruction::new(code))),
         _ => None,
     }
 }

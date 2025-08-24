@@ -50,11 +50,11 @@ impl CPU {
     pub fn write_memory_map_u32(&mut self, memmap: Vec<u32>, start: usize) {
         let mmap_size = memmap.len();
 
-        for addr in 0..mmap_size {
+        (0..mmap_size).for_each(|addr| {
             println!("map: {addr}");
             self.memory
                 .write_u32((start + (addr * 4)) as u32, memmap[addr]);
-        }
+        });
     }
 
     pub fn init(&mut self) {
@@ -69,7 +69,6 @@ impl CPU {
         let instr = encode(machine_code);
 
         if let Some(i) = instr {
-            println!("ADAS");
             self.exec(i);
         }
 
@@ -96,3 +95,4 @@ impl CPU {
         }
     }
 }
+
